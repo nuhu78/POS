@@ -13,12 +13,22 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    const params = search ? { search } : {};
-    const [pRes, cRes] = await Promise.all([listProducts(params), listCategories()]);
-    setProducts(pRes.data?.results ?? pRes.data ?? []);
-    setCategories(cRes.data?.results ?? cRes.data ?? []);
+    setLoading(true);
+    setError("");
+    try {
+      const params = search ? { search } : {};
+      const [pRes, cRes] = await Promise.all([listProducts(params), listCategories()]);
+      setProducts(pRes.data?.results ?? pRes.data ?? []);
+      setCategories(cRes.data?.results ?? cRes.data ?? []);
+    } catch {
+      setError("Failed to load products.");
+    } finally {
+      setLoading(false);
+    }
   }, [search]);
 
   useEffect(() => { load(); }, [load]);
@@ -27,14 +37,19 @@ export default function ProductsPage() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (editing) {
-      await updateProduct(editing, form);
-    } else {
-      await createProduct(form);
+    setError("");
+    try {
+      if (editing) {
+        await updateProduct(editing, form);
+      } else {
+        await createProduct(form);
+      }
+      setForm(emptyForm);
+      setEditing(null);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "Failed to save product.");
     }
-    setForm(emptyForm);
-    setEditing(null);
-    load();
   };
 
   const handleEdit = (p) => {
@@ -44,8 +59,13 @@ export default function ProductsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this product?")) return;
-    await deleteProduct(id);
-    load();
+    setError("");
+    try {
+      await deleteProduct(id);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "Failed to delete product.");
+    }
   };
 
   const handleCancel = () => {
@@ -53,9 +73,12 @@ export default function ProductsPage() {
     setForm(emptyForm);
   };
 
+  if (loading) return <div>Loading products...</div>;
+
   return (
     <div>
       <h1>Products</h1>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <input placeholder="Search name or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} />
       {isAdmin && (
         <form onSubmit={handleSave}>
@@ -77,28 +100,32 @@ export default function ProductsPage() {
           {editing && <button type="button" onClick={handleCancel}>Cancel</button>}
         </form>
       )}
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th>
-            {isAdmin && <th>Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((p) => (
-            <tr key={p.id}>
-              <td>{p.name}</td><td>{p.sku}</td><td>{p.category_name}</td>
-              <td>{p.selling_price}</td><td>{p.stock}</td><td>{p.status}</td>
-              {isAdmin && (
-                <td>
-                  <button onClick={() => handleEdit(p)}>Edit</button>
-                  <button onClick={() => handleDelete(p.id)}>Delete</button>
-                </td>
-              )}
+      {products.length === 0 ? (
+        <p>No products found.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th>
+              {isAdmin && <th>Actions</th>}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {products.map((p) => (
+              <tr key={p.id}>
+                <td>{p.name}</td><td>{p.sku}</td><td>{p.category_name}</td>
+                <td>{p.selling_price}</td><td>{p.stock}</td><td>{p.status}</td>
+                {isAdmin && (
+                  <td>
+                    <button onClick={() => handleEdit(p)}>Edit</button>
+                    <button onClick={() => handleDelete(p.id)}>Delete</button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

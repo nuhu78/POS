@@ -13,11 +13,21 @@ export default function CustomersPage() {
   const [form, setForm] = useState(emptyForm);
   const [history, setHistory] = useState(null);
   const [historyCustomer, setHistoryCustomer] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    const params = search ? { search } : {};
-    const { data } = await listCustomers(params);
-    setCustomers(data?.results ?? data ?? []);
+    setLoading(true);
+    setError("");
+    try {
+      const params = search ? { search } : {};
+      const { data } = await listCustomers(params);
+      setCustomers(data?.results ?? data ?? []);
+    } catch {
+      setError("Failed to load customers.");
+    } finally {
+      setLoading(false);
+    }
   }, [search]);
 
   useEffect(() => { load(); }, [load]);
@@ -26,14 +36,19 @@ export default function CustomersPage() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (editing) {
-      await updateCustomer(editing, form);
-    } else {
-      await createCustomer(form);
+    setError("");
+    try {
+      if (editing) {
+        await updateCustomer(editing, form);
+      } else {
+        await createCustomer(form);
+      }
+      setForm(emptyForm);
+      setEditing(null);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "Failed to save customer.");
     }
-    setForm(emptyForm);
-    setEditing(null);
-    load();
   };
 
   const handleEdit = (c) => {
@@ -43,8 +58,13 @@ export default function CustomersPage() {
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this customer?")) return;
-    await deleteCustomer(id);
-    load();
+    setError("");
+    try {
+      await deleteCustomer(id);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "Failed to delete customer.");
+    }
   };
 
   const handleCancel = () => {
@@ -53,14 +73,22 @@ export default function CustomersPage() {
   };
 
   const showHistory = async (c) => {
-    const { data } = await getPurchaseHistory(c.id);
-    setHistory(data);
-    setHistoryCustomer(c);
+    setError("");
+    try {
+      const { data } = await getPurchaseHistory(c.id);
+      setHistory(data);
+      setHistoryCustomer(c);
+    } catch {
+      setError("Failed to load purchase history.");
+    }
   };
+
+  if (loading) return <div>Loading customers...</div>;
 
   return (
     <div>
       <h1>Customers</h1>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <input placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} />
       {isAdmin && (
         <form onSubmit={handleSave}>
@@ -71,23 +99,27 @@ export default function CustomersPage() {
           {editing && <button type="button" onClick={handleCancel}>Cancel</button>}
         </form>
       )}
-      <table>
-        <thead>
-          <tr><th>Name</th><th>Phone</th><th>Address</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          {customers.map((c) => (
-            <tr key={c.id}>
-              <td>{c.name}</td><td>{c.phone}</td><td>{c.address}</td>
-              <td>
-                {isAdmin && <button onClick={() => handleEdit(c)}>Edit</button>}
-                {isAdmin && <button onClick={() => handleDelete(c.id)}>Delete</button>}
-                <button onClick={() => showHistory(c)}>History</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {customers.length === 0 ? (
+        <p>No customers found.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>Address</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {customers.map((c) => (
+              <tr key={c.id}>
+                <td>{c.name}</td><td>{c.phone}</td><td>{c.address}</td>
+                <td>
+                  {isAdmin && <button onClick={() => handleEdit(c)}>Edit</button>}
+                  {isAdmin && <button onClick={() => handleDelete(c.id)}>Delete</button>}
+                  <button onClick={() => showHistory(c)}>History</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       {historyCustomer && (
         <div>
           <h2>Purchase History — {historyCustomer.name}</h2>

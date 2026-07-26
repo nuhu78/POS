@@ -16,16 +16,27 @@ export default function POSScreen() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadProducts = useCallback(async () => {
-    const params = search ? { search } : { status: "active" };
-    const { data } = await listProducts(params);
-    setProducts(data?.results ?? data ?? []);
+    try {
+      const params = search ? { search } : { status: "active" };
+      const { data } = await listProducts(params);
+      setProducts(data?.results ?? data ?? []);
+    } catch {
+      setError("Failed to load products.");
+    }
   }, [search]);
 
   const loadCustomers = useCallback(async () => {
-    const { data } = await listCustomers();
-    setCustomers(data?.results ?? data ?? []);
+    try {
+      const { data } = await listCustomers();
+      setCustomers(data?.results ?? data ?? []);
+    } catch {
+      /* customers are optional */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
@@ -75,15 +86,16 @@ export default function POSScreen() {
       setSuccess(data);
       setCart([]);
       setDiscount("0.00");
-      setPaid("");
       setCustomerId("");
     } catch (err) {
-      const msg = err.response?.data?.error?.message || err.response?.data?.message || "Sale failed.";
+      const msg = err.response?.data?.error?.message || "Sale failed.";
       setError(msg);
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (loading) return <div>Loading POS...</div>;
 
   if (success) {
     return (
@@ -98,49 +110,47 @@ export default function POSScreen() {
   }
 
   return (
-    <div style={{ display: "flex", gap: "1rem" }}>
-      <div style={{ flex: 1 }}>
+    <div className="pos-layout">
+      <div className="pos-products">
         <h2>Products</h2>
         <input placeholder="Search product..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+        <div className="pos-product-list">
           {products.map((p) => (
-            <div key={p.id} style={{ border: "1px solid #ccc", padding: "0.5rem", margin: "0.25rem 0", cursor: "pointer" }} onClick={() => addToCart(p)}>
-              <strong>{p.name}</strong> — {p.selling_price} BDT<br />
+            <div key={p.id} className="pos-product-card" onClick={() => addToCart(p)}>
+              <strong>{p.name}</strong><br />
+              <span>{p.selling_price} BDT</span><br />
               <small>SKU: {p.sku} | Stock: {p.stock}</small>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ flex: 1 }}>
+      <div className="pos-cart">
         <h2>Cart</h2>
         {cart.length === 0 && <p>Cart is empty.</p>}
         {cart.map((item) => (
-          <div key={item.product} style={{ border: "1px solid #ccc", padding: "0.5rem", margin: "0.25rem 0" }}>
+          <div key={item.product} className="pos-cart-item">
             <strong>{item.name}</strong>
-            <div>
-              Qty: <input type="number" value={item.quantity} min="1" onChange={(e) => updateQty(item.product, parseInt(e.target.value) || 0)} style={{ width: "60px" }} />
+            <div className="pos-cart-item-controls">
+              Qty: <input type="number" value={item.quantity} min="1" onChange={(e) => updateQty(item.product, parseInt(e.target.value) || 0)} className="pos-qty-input" />
               @ {item.price} BDT
-              <button onClick={() => removeFromCart(item.product)} style={{ marginLeft: "0.5rem" }}>X</button>
+              <button onClick={() => removeFromCart(item.product)} className="pos-remove-btn">X</button>
             </div>
             <small>Line total: {(item.price * item.quantity).toFixed(2)}</small>
           </div>
         ))}
 
         <form onSubmit={handleSubmit}>
-          <div>
-            <label>Customer (optional): </label>
+          <div><label>Customer: </label>
             <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
               <option value="">Walk-in</option>
               {customers.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>)}
             </select>
           </div>
-          <div>
-            <label>Discount: </label>
+          <div><label>Discount: </label>
             <input type="number" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} />
           </div>
-          <div>
-            <label>Payment method: </label>
+          <div><label>Payment: </label>
             <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
               <option value="cash">Cash</option>
               <option value="card">Card</option>

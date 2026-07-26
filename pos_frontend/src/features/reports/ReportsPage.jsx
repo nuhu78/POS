@@ -10,9 +10,11 @@ export default function ReportsPage() {
   const [endDate, setEndDate] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const load = async () => {
     setLoading(true);
+    setError("");
     try {
       let res;
       switch (tab) {
@@ -30,6 +32,8 @@ export default function ReportsPage() {
           break;
       }
       setData(res.data ?? []);
+    } catch {
+      setError("Failed to load report.");
     } finally {
       setLoading(false);
     }
@@ -58,7 +62,13 @@ export default function ReportsPage() {
         <button onClick={load} disabled={loading}>{loading ? "Loading..." : "Load"}</button>
       </div>
 
-      {tab === "daily" && (
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {!loading && data.length === 0 && <p>No data. Click "Load" to fetch results.</p>}
+
+      {loading && <div>Loading report...</div>}
+
+      {!loading && tab === "daily" && data.length > 0 && (
         <table>
           <thead><tr><th>Date</th><th>Sales</th><th>Transactions</th></tr></thead>
           <tbody>
@@ -69,7 +79,7 @@ export default function ReportsPage() {
         </table>
       )}
 
-      {tab === "monthly" && (
+      {!loading && tab === "monthly" && data.length > 0 && (
         <table>
           <thead><tr><th>Month</th><th>Sales</th><th>Transactions</th></tr></thead>
           <tbody>
@@ -80,7 +90,7 @@ export default function ReportsPage() {
         </table>
       )}
 
-      {(tab === "products" || tab === "bestsellers") && (
+      {!loading && (tab === "products" || tab === "bestsellers") && data.length > 0 && (
         <table>
           <thead><tr><th>Product</th><th>SKU</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
           <tbody>

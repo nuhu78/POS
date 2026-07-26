@@ -34,10 +34,26 @@ class SaleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["invoice_number", "user", "date", "subtotal", "total"]
 
+    def validate_discount(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Discount cannot be negative.")
+        return value
+
     def validate(self, data):
         if "subtotal" in self.initial_data or "total" in self.initial_data:
             raise serializers.ValidationError(
                 {"error": "SERVER_COMPUTED", "message": "Subtotal and total are server-computed. Do not send them."}
+            )
+        items_data = data.get("items", [])
+        for i, item in enumerate(items_data):
+            if item.get("quantity", 0) <= 0:
+                raise serializers.ValidationError(
+                    {f"items.{i}.quantity": ["Quantity must be greater than 0."]}
+                )
+        payment_data = data.get("payment", {})
+        if payment_data.get("amount", 0) <= 0:
+            raise serializers.ValidationError(
+                {"payment.amount": ["Payment amount must be greater than 0."]}
             )
         return data
 

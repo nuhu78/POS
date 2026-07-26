@@ -8,10 +8,20 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [editing, setEditing] = useState(null);
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = async () => {
-    const { data } = await listCategories();
-    setCategories(data?.results ?? data ?? []);
+    setLoading(true);
+    setError("");
+    try {
+      const { data } = await listCategories();
+      setCategories(data?.results ?? data ?? []);
+    } catch {
+      setError("Failed to load categories.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -19,14 +29,19 @@ export default function CategoriesPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    if (editing) {
-      await updateCategory(editing, { name });
-    } else {
-      await createCategory({ name });
+    setError("");
+    try {
+      if (editing) {
+        await updateCategory(editing, { name });
+      } else {
+        await createCategory({ name });
+      }
+      setName("");
+      setEditing(null);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "Failed to save category.");
     }
-    setName("");
-    setEditing(null);
-    load();
   };
 
   const handleEdit = (cat) => {
@@ -36,8 +51,13 @@ export default function CategoriesPage() {
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this category?")) return;
-    await deleteCategory(id);
-    load();
+    setError("");
+    try {
+      await deleteCategory(id);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "Failed to delete category.");
+    }
   };
 
   const handleCancel = () => {
@@ -45,9 +65,12 @@ export default function CategoriesPage() {
     setName("");
   };
 
+  if (loading) return <div>Loading categories...</div>;
+
   return (
     <div>
       <h1>Categories</h1>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       {isAdmin && (
         <form onSubmit={handleSave}>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Category name" required />
@@ -55,19 +78,23 @@ export default function CategoriesPage() {
           {editing && <button type="button" onClick={handleCancel}>Cancel</button>}
         </form>
       )}
-      <ul>
-        {categories.map((cat) => (
-          <li key={cat.id}>
-            {cat.name}
-            {isAdmin && (
-              <>
-                <button onClick={() => handleEdit(cat)}>Edit</button>
-                <button onClick={() => handleDelete(cat.id)}>Delete</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+      {categories.length === 0 ? (
+        <p>No categories yet.</p>
+      ) : (
+        <ul>
+          {categories.map((cat) => (
+            <li key={cat.id}>
+              {cat.name}
+              {isAdmin && (
+                <>
+                  <button onClick={() => handleEdit(cat)}>Edit</button>
+                  <button onClick={() => handleDelete(cat.id)}>Delete</button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

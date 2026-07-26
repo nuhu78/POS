@@ -1,0 +1,28 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 1rem; }
+
+nav { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+nav a, nav button { padding: 0.4rem 0.8rem; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { border: 1px solid #ccc; padding: 0.4rem; text-align: left; }
+
+input, select, textarea, button { padding: 0.4rem; margin: 0.25rem 0; }
+form { margin: 1rem 0; }
+form > div { margin: 0.5rem 0; }
+
+.pos-layout { display: flex; gap: 1rem; }
+.pos-products { flex: 1; }
+.pos-cart { flex: 1; }
+.pos-product-list { max-height: 60vh; overflow-y: auto; }
+.pos-product-card { border: 1px solid #ccc; padding: 0.5rem; margin: 0.25rem 0; cursor: pointer; }
+.pos-product-card:hover { background: #f0f0f0; }
+.pos-cart-item { border: 1px solid #ccc; padding: 0.5rem; margin: 0.25rem 0; }
+.pos-cart-item-controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.pos-qty-input { width: 60px; }
+.pos-remove-btn { margin-left: auto; }
+
+@media (max-width: 768px) {
+  .pos-layout { flex-direction: column; }
+  .pos-product-list { max-height: 40vh; }
+}

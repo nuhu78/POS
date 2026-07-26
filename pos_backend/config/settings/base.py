@@ -120,6 +120,7 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
     ],
+    "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
 }
 
 from datetime import timedelta
