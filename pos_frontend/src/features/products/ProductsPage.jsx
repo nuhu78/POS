@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { listProducts, createProduct, updateProduct, deleteProduct } from "../../api/products";
 import { listCategories } from "../../api/categories";
@@ -15,9 +15,12 @@ export default function ProductsPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const initialLoad = useRef(true);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (!initialLoad.current) {
+      setLoading(true);
+    }
     setError("");
     try {
       const params = search ? { search } : {};
@@ -28,6 +31,7 @@ export default function ProductsPage() {
       setError("Failed to load products.");
     } finally {
       setLoading(false);
+      initialLoad.current = false;
     }
   }, [search]);
 
@@ -73,58 +77,69 @@ export default function ProductsPage() {
     setForm(emptyForm);
   };
 
-  if (loading) return <div>Loading products...</div>;
+  if (loading) return <div className="text-gray-500 p-8">Loading products...</div>;
 
   return (
     <div>
-      <h1>Products</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <input placeholder="Search name or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} />
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Products</h1>
+      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+
+      <input placeholder="Search name or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} className="input max-w-xs mb-6" />
+
       {isAdmin && (
-        <form onSubmit={handleSave}>
-          <input name="name" value={form.name} onChange={handleChange} placeholder="Name" required />
-          <input name="sku" value={form.sku} onChange={handleChange} placeholder="SKU" required />
-          <select name="category" value={form.category} onChange={handleChange} required>
-            <option value="">Select category</option>
+        <form onSubmit={handleSave} className="card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Name</label><input name="name" value={form.name} onChange={handleChange} required className="input" /></div>
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">SKU</label><input name="sku" value={form.sku} onChange={handleChange} required className="input" /></div>
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Category</label><select name="category" value={form.category} onChange={handleChange} required className="input">
+            <option value="">Select</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <input name="purchase_price" value={form.purchase_price} onChange={handleChange} placeholder="Purchase price" type="number" step="0.01" required />
-          <input name="selling_price" value={form.selling_price} onChange={handleChange} placeholder="Selling price" type="number" step="0.01" required />
-          <input name="stock" value={form.stock} onChange={handleChange} placeholder="Stock" type="number" required />
-          <input name="low_stock_threshold" value={form.low_stock_threshold} onChange={handleChange} placeholder="Low stock threshold" type="number" />
-          <select name="status" value={form.status} onChange={handleChange}>
+          </select></div>
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Purchase price</label><input name="purchase_price" value={form.purchase_price} onChange={handleChange} type="number" step="0.01" required className="input" /></div>
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Selling price</label><input name="selling_price" value={form.selling_price} onChange={handleChange} type="number" step="0.01" required className="input" /></div>
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Stock</label><input name="stock" value={form.stock} onChange={handleChange} type="number" required className="input" /></div>
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Low stock threshold</label><input name="low_stock_threshold" value={form.low_stock_threshold} onChange={handleChange} type="number" className="input" /></div>
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Status</label><select name="status" value={form.status} onChange={handleChange} className="input">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-          </select>
-          <button type="submit">{editing ? "Update" : "Add"}</button>
-          {editing && <button type="button" onClick={handleCancel}>Cancel</button>}
+          </select></div>
+          <div className="sm:col-span-2 lg:col-span-4 flex gap-2">
+            <button type="submit" className="btn-primary">{editing ? "Update" : "Add"} Product</button>
+            {editing && <button type="button" className="btn-ghost" onClick={handleCancel}>Cancel</button>}
+          </div>
         </form>
       )}
+
       {products.length === 0 ? (
-        <p>No products found.</p>
+        <p className="text-gray-500">No products found.</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th>
-              {isAdmin && <th>Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id}>
-                <td>{p.name}</td><td>{p.sku}</td><td>{p.category_name}</td>
-                <td>{p.selling_price}</td><td>{p.stock}</td><td>{p.status}</td>
-                {isAdmin && (
-                  <td>
-                    <button onClick={() => handleEdit(p)}>Edit</button>
-                    <button onClick={() => handleDelete(p.id)}>Delete</button>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="table-header">
+                  <th className="p-3 text-left">Name</th><th className="p-3 text-left">SKU</th><th className="p-3 text-left">Category</th>
+                  <th className="p-3 text-left">Price</th><th className="p-3 text-left">Stock</th><th className="p-3 text-left">Status</th>
+                  {isAdmin && <th className="p-3 text-right">Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((p) => (
+                  <tr key={p.id} className="border-b border-gray-100">
+                    <td className="p-3">{p.name}</td><td className="p-3 text-gray-500">{p.sku}</td>
+                    <td className="p-3">{p.category_name}</td><td className="p-3">{p.selling_price}</td>
+                    <td className="p-3">{p.stock}</td><td className="p-3">{p.status}</td>
+                    {isAdmin && (
+                      <td className="p-3 text-right space-x-1">
+                        <button onClick={() => handleEdit(p)} className="btn-ghost btn-sm">Edit</button>
+                        <button onClick={() => handleDelete(p.id)} className="btn-danger btn-sm">Delete</button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );

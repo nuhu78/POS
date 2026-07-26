@@ -34,18 +34,34 @@ export default function SettingsPage() {
     }
   };
 
-  if (loading) return <div>Loading settings...</div>;
+  if (loading) return <div className="text-gray-500 p-8">Loading settings...</div>;
 
   return (
-    <form onSubmit={handleSave}>
-      <h1>Shop Settings</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <div><label>Shop name: <input name="shop_name" value={form.shop_name} onChange={handleChange} required /></label></div>
-      <div><label>Tax %: <input name="tax_percentage" type="number" step="0.01" value={form.tax_percentage} onChange={handleChange} /></label></div>
-      <div><label>Currency: <input name="currency" value={form.currency} onChange={handleChange} /></label></div>
-      <div><label>Receipt footer:<br /><textarea name="receipt_footer" value={form.receipt_footer} onChange={handleChange} rows={3} style={{ width: "300px" }} /></label></div>
-      <button type="submit">Save</button>
-      {saved && <span style={{ color: "green", marginLeft: "0.5rem" }}>Saved!</span>}
-    </form>
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Shop Settings</h1>
+      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      <form onSubmit={handleSave} className="card max-w-lg space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Shop name</label>
+          <input name="shop_name" value={form.shop_name} onChange={handleChange} required className="input" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tax %</label>
+            <input name="tax_percentage" type="number" step="0.01" value={form.tax_percentage} onChange={handleChange} className="input" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+            <input name="currency" value={form.currency} onChange={handleChange} className="input" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Receipt footer</label>
+          <textarea name="receipt_footer" value={form.receipt_footer} onChange={handleChange} rows={3} className="input" />
+        </div>
+        <button type="submit" className="btn-primary">Save</button>
+        {saved && <span className="text-green-600 text-sm ml-2">Saved!</span>}
+      </form>
+    </div>
   );
 }

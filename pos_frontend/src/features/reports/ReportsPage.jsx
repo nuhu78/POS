@@ -39,66 +39,74 @@ export default function ReportsPage() {
     }
   };
 
+  const tabs = [
+    { key: "daily", label: "Daily" },
+    { key: "monthly", label: "Monthly" },
+    { key: "products", label: "By Product" },
+    { key: "bestsellers", label: "Best Sellers" },
+  ];
+
   return (
     <div>
-      <h1>Reports</h1>
-      <div>
-        <button onClick={() => setTab("daily")} style={{ fontWeight: tab === "daily" ? "bold" : "normal" }}>Daily</button>
-        <button onClick={() => setTab("monthly")} style={{ fontWeight: tab === "monthly" ? "bold" : "normal" }}>Monthly</button>
-        <button onClick={() => setTab("products")} style={{ fontWeight: tab === "products" ? "bold" : "normal" }}>By Product</button>
-        <button onClick={() => setTab("bestsellers")} style={{ fontWeight: tab === "bestsellers" ? "bold" : "normal" }}>Best Sellers</button>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Reports</h1>
+
+      <div className="flex gap-1 mb-4">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-2 text-sm rounded-md transition-colors ${tab === t.key ? "bg-amber-500 text-white font-semibold" : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"}`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div style={{ margin: "1rem 0" }}>
-        {tab === "daily" && <label>Days: <input type="number" value={days} onChange={(e) => setDays(e.target.value)} min="1" max="365" style={{ width: "60px" }} /></label>}
-        {tab === "monthly" && <label>Months: <input type="number" value={months} onChange={(e) => setMonths(e.target.value)} min="1" max="60" style={{ width: "60px" }} /></label>}
-        {tab === "bestsellers" && <label>Top: <input type="number" value={top} onChange={(e) => setTop(e.target.value)} min="1" max="100" style={{ width: "60px" }} /></label>}
+      <div className="card flex flex-wrap items-end gap-3 mb-6">
+        {tab === "daily" && (
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Days</label><input type="number" value={days} onChange={(e) => setDays(e.target.value)} min="1" max="365" className="input w-20" /></div>
+        )}
+        {tab === "monthly" && (
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Months</label><input type="number" value={months} onChange={(e) => setMonths(e.target.value)} min="1" max="60" className="input w-20" /></div>
+        )}
+        {tab === "bestsellers" && (
+          <div><label className="block text-xs font-medium text-gray-500 mb-1">Top</label><input type="number" value={top} onChange={(e) => setTop(e.target.value)} min="1" max="100" className="input w-20" /></div>
+        )}
         {(tab === "products" || tab === "bestsellers") && (
           <>
-            <label>From: <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
-            <label>To: <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></label>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">From</label><input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input" /></div>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">To</label><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="input" /></div>
           </>
         )}
-        <button onClick={load} disabled={loading}>{loading ? "Loading..." : "Load"}</button>
+        <div><button onClick={load} disabled={loading} className="btn-primary btn-sm">{loading ? "Loading..." : "Load"}</button></div>
       </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
-      {!loading && data.length === 0 && <p>No data. Click "Load" to fetch results.</p>}
+      {!loading && data.length === 0 && <p className="text-gray-500">No data. Click "Load" to fetch results.</p>}
+      {loading && <div className="text-gray-500">Loading report...</div>}
 
-      {loading && <div>Loading report...</div>}
-
-      {!loading && tab === "daily" && data.length > 0 && (
-        <table>
-          <thead><tr><th>Date</th><th>Sales</th><th>Transactions</th></tr></thead>
-          <tbody>
-            {data.map((r, i) => (
-              <tr key={i}><td>{r.date}</td><td>{r.total}</td><td>{r.transactions}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {!loading && tab === "monthly" && data.length > 0 && (
-        <table>
-          <thead><tr><th>Month</th><th>Sales</th><th>Transactions</th></tr></thead>
-          <tbody>
-            {data.map((r, i) => (
-              <tr key={i}><td>{r.month}</td><td>{r.total}</td><td>{r.transactions}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {!loading && (tab === "products" || tab === "bestsellers") && data.length > 0 && (
-        <table>
-          <thead><tr><th>Product</th><th>SKU</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
-          <tbody>
-            {data.map((r, i) => (
-              <tr key={i}><td>{r.product_name}</td><td>{r.product_sku}</td><td>{r.total_qty}</td><td>{r.total_revenue}</td></tr>
-            ))}
-          </tbody>
-        </table>
+      {!loading && data.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="table-header">
+                  {(tab === "daily" || tab === "monthly") && <><th className="p-3 text-left">{tab === "daily" ? "Date" : "Month"}</th><th className="p-3 text-left">Sales</th><th className="p-3 text-left">Transactions</th></>}
+                  {(tab === "products" || tab === "bestsellers") && <><th className="p-3 text-left">Product</th><th className="p-3 text-left">SKU</th><th className="p-3 text-left">Qty Sold</th><th className="p-3 text-left">Revenue</th></>}
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((r, i) => (
+                  <tr key={i} className="border-b border-gray-100">
+                    {(tab === "daily" || tab === "monthly") && <><td className="p-3">{r.date || r.month}</td><td className="p-3">{r.total}</td><td className="p-3">{r.transactions}</td></>}
+                    {(tab === "products" || tab === "bestsellers") && <><td className="p-3">{r.product_name}</td><td className="p-3 text-gray-500">{r.product_sku}</td><td className="p-3">{r.total_qty}</td><td className="p-3">{r.total_revenue}</td></>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );

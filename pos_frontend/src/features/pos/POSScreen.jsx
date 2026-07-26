@@ -95,74 +95,120 @@ export default function POSScreen() {
     }
   };
 
-  if (loading) return <div>Loading POS...</div>;
+  if (loading) return <div className="text-gray-500 p-8">Loading POS...</div>;
 
   if (success) {
     return (
-      <div>
-        <h2>Sale Complete</h2>
-        <p>Invoice: {success.invoice_number}</p>
-        <p>Total: {success.total}</p>
-        <button onClick={() => navigate(`/cashier/invoices/${success.id}`)}>View Invoice</button>
-        <button onClick={() => setSuccess(null)}>New Sale</button>
+      <div className="card max-w-md mx-auto mt-12 text-center">
+        <h2 className="text-xl font-bold text-green-600 mb-2">Sale Complete</h2>
+        <p className="text-gray-600">Invoice: {success.invoice_number}</p>
+        <p className="text-lg font-semibold text-gray-800 mt-1">Total: {success.total}</p>
+        <div className="flex gap-2 justify-center mt-4">
+          <button onClick={() => navigate(`/cashier/invoices/${success.id}`)} className="btn-primary">View Invoice</button>
+          <button onClick={() => setSuccess(null)} className="btn-ghost">New Sale</button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="pos-layout">
-      <div className="pos-products">
-        <h2>Products</h2>
-        <input placeholder="Search product..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="pos-product-list">
+    <div className="flex flex-col md:flex-row gap-4">
+      {/* Product panel */}
+      <div className="md:w-1/2">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Products</h2>
+        <input
+          placeholder="Search product..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input mb-3"
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto pr-1">
+          {products.length === 0 && <p className="text-gray-500 col-span-full">No products found.</p>}
           {products.map((p) => (
-            <div key={p.id} className="pos-product-card" onClick={() => addToCart(p)}>
-              <strong>{p.name}</strong><br />
-              <span>{p.selling_price} BDT</span><br />
-              <small>SKU: {p.sku} | Stock: {p.stock}</small>
+            <div
+              key={p.id}
+              onClick={() => addToCart(p)}
+              className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-amber-500 hover:shadow-sm transition-all bg-white"
+            >
+              <p className="font-medium text-sm">{p.name}</p>
+              <p className="text-amber-600 font-semibold text-sm">{p.selling_price} BDT</p>
+              <p className="text-xs text-gray-500">SKU: {p.sku} | Stock: {p.stock}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="pos-cart">
-        <h2>Cart</h2>
-        {cart.length === 0 && <p>Cart is empty.</p>}
-        {cart.map((item) => (
-          <div key={item.product} className="pos-cart-item">
-            <strong>{item.name}</strong>
-            <div className="pos-cart-item-controls">
-              Qty: <input type="number" value={item.quantity} min="1" onChange={(e) => updateQty(item.product, parseInt(e.target.value) || 0)} className="pos-qty-input" />
-              @ {item.price} BDT
-              <button onClick={() => removeFromCart(item.product)} className="pos-remove-btn">X</button>
-            </div>
-            <small>Line total: {(item.price * item.quantity).toFixed(2)}</small>
-          </div>
-        ))}
+      {/* Cart panel */}
+      <div className="md:w-1/2">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Cart</h2>
 
-        <form onSubmit={handleSubmit}>
-          <div><label>Customer: </label>
-            <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-              <option value="">Walk-in</option>
-              {customers.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>)}
-            </select>
+        <div className="space-y-2 max-h-[30vh] overflow-y-auto mb-4">
+          {cart.length === 0 && <p className="text-gray-500 text-sm">Cart is empty.</p>}
+          {cart.map((item) => (
+            <div key={item.product} className="card py-2 px-3">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">{item.name}</span>
+                <button onClick={() => removeFromCart(item.product)} className="text-red-500 text-xs font-bold hover:text-red-700">✕</button>
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-sm">
+                <span className="text-gray-500">Qty:</span>
+                <input
+                  type="number"
+                  value={item.quantity}
+                  min="1"
+                  onChange={(e) => updateQty(item.product, parseInt(e.target.value) || 0)}
+                  className="border border-gray-300 rounded w-16 px-2 py-1 text-sm"
+                />
+                <span className="text-gray-500">@ {item.price}</span>
+                <span className="ml-auto font-semibold">{(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Customer</label>
+              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="input">
+                <option value="">Walk-in</option>
+                {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Payment</label>
+              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="input">
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="mobile_banking">Mobile Banking</option>
+              </select>
+            </div>
           </div>
-          <div><label>Discount: </label>
-            <input type="number" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Discount</label>
+              <input type="number" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} className="input" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Amount given</label>
+              <input type="number" step="0.01" className="input" placeholder="0.00" />
+            </div>
           </div>
-          <div><label>Payment: </label>
-            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
-              <option value="mobile_banking">Mobile Banking</option>
-            </select>
+
+          <div className="flex justify-between items-center py-2 border-t border-gray-200">
+            <span className="text-sm text-gray-500">Subtotal</span>
+            <span className="font-semibold">{subtotal.toFixed(2)}</span>
           </div>
-          <div><strong>Subtotal: {subtotal.toFixed(2)}</strong></div>
-          <div><strong>Total: {total.toFixed(2)}</strong></div>
-          <button type="submit" disabled={submitting || cart.length === 0}>
+          <div className="flex justify-between items-center text-lg font-bold">
+            <span>Total</span>
+            <span className="text-amber-600">{total.toFixed(2)} BDT</span>
+          </div>
+
+          <button type="submit" className="btn-primary w-full" disabled={submitting || cart.length === 0}>
             {submitting ? "Processing..." : "Complete Sale"}
           </button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <p className="text-red-600 text-sm">{error}</p>}
         </form>
       </div>
     </div>

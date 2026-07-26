@@ -21,63 +21,70 @@ export default function InvoicePage() {
     })();
   }, [id, navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-gray-500 p-8">Loading invoice...</div>;
   if (!sale) return null;
 
   return (
-    <div style={{ maxWidth: "400px", margin: "0 auto", padding: "1rem" }} id="invoice">
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <h2>{sale.shop.shop_name}</h2>
-        <p style={{ fontSize: "0.85rem" }}>Invoice: {sale.invoice_number}</p>
-        <p style={{ fontSize: "0.85rem" }}>Date: {new Date(sale.date).toLocaleDateString()}</p>
-      </div>
+    <div className="max-w-sm mx-auto" id="invoice">
+      <div className="card print:shadow-none print:border-none">
+        <div className="text-center mb-4">
+          <h2 className="text-lg font-bold text-gray-800">{sale.shop.shop_name}</h2>
+          <p className="text-xs text-gray-500">Invoice: {sale.invoice_number}</p>
+          <p className="text-xs text-gray-500">Date: {new Date(sale.date).toLocaleDateString()}</p>
+        </div>
 
-      <hr />
-      <p><strong>Cashier:</strong> {sale.user_name}</p>
-      <p><strong>Customer:</strong> {sale.customer_name || "Walk-in"}</p>
-      <hr />
+        <hr className="border-gray-300 mb-3" />
+        <div className="text-xs space-y-1 mb-3">
+          <p><span className="font-medium">Cashier:</span> {sale.user_name}</p>
+          <p><span className="font-medium">Customer:</span> {sale.customer_name || "Walk-in"}</p>
+        </div>
+        <hr className="border-gray-300 mb-3" />
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ borderBottom: "1px solid #000" }}>
-            <th style={{ textAlign: "left" }}>Item</th>
-            <th style={{ textAlign: "center" }}>Qty</th>
-            <th style={{ textAlign: "right" }}>Price</th>
-            <th style={{ textAlign: "right" }}>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sale.items.map((item, i) => (
-            <tr key={i} style={{ borderBottom: "1px solid #ccc" }}>
-              <td>{item.product_name}</td>
-              <td style={{ textAlign: "center" }}>{item.quantity}</td>
-              <td style={{ textAlign: "right" }}>{item.price}</td>
-              <td style={{ textAlign: "right" }}>{(item.price * item.quantity).toFixed(2)}</td>
+        <table className="w-full text-xs mb-3">
+          <thead>
+            <tr className="border-b border-gray-400">
+              <th className="text-left py-1">Item</th>
+              <th className="text-center py-1">Qty</th>
+              <th className="text-right py-1">Price</th>
+              <th className="text-right py-1">Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sale.items.map((item, i) => (
+              <tr key={i} className="border-b border-gray-200">
+                <td className="py-1">{item.product_name}</td>
+                <td className="text-center py-1">{item.quantity}</td>
+                <td className="text-right py-1">{item.price}</td>
+                <td className="text-right py-1">{(item.price * item.quantity).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      <div style={{ marginTop: "1rem", textAlign: "right" }}>
-        <p><strong>Subtotal:</strong> {sale.subtotal} {sale.shop.currency}</p>
-        <p><strong>Discount:</strong> {sale.discount}</p>
-        {parseFloat(sale.shop.tax_percentage) > 0 && (
-          <p><strong>Tax ({sale.shop.tax_percentage}%):</strong> {(parseFloat(sale.subtotal) * parseFloat(sale.shop.tax_percentage) / 100).toFixed(2)}</p>
+        <div className="text-xs text-right space-y-1">
+          <p><span className="font-medium">Subtotal:</span> {sale.subtotal} {sale.shop.currency}</p>
+          <p><span className="font-medium">Discount:</span> {sale.discount}</p>
+          {parseFloat(sale.shop.tax_percentage) > 0 && (
+            <p><span className="font-medium">Tax ({sale.shop.tax_percentage}%):</span> {(parseFloat(sale.subtotal) * parseFloat(sale.shop.tax_percentage) / 100).toFixed(2)}</p>
+          )}
+          <p className="text-sm font-bold text-gray-800">Total: {sale.total} {sale.shop.currency}</p>
+          <p><span className="font-medium">Paid via:</span> {sale.payment.method}</p>
+        </div>
+
+        <hr className="border-gray-300 my-3" />
+        {sale.shop.receipt_footer && (
+          <p className="text-xs text-center italic text-gray-500 mb-3">{sale.shop.receipt_footer}</p>
         )}
-        <p style={{ fontSize: "1.2rem" }}><strong>Total:</strong> {sale.total} {sale.shop.currency}</p>
-        <p><strong>Paid via:</strong> {sale.payment.method}</p>
-      </div>
 
-      <hr />
-      <div style={{ textAlign: "center", marginTop: "1rem" }}>
-        {sale.shop.receipt_footer && <p style={{ fontSize: "0.85rem", fontStyle: "italic" }}>{sale.shop.receipt_footer}</p>}
-        <button onClick={() => window.print()}>Print</button>
-        <button onClick={() => navigate("/cashier")} style={{ marginLeft: "0.5rem" }}>Back to POS</button>
+        <div className="flex gap-2 justify-center print:hidden">
+          <button onClick={() => window.print()} className="btn-primary btn-sm">Print</button>
+          <button onClick={() => navigate(-1)} className="btn-ghost btn-sm">Back</button>
+        </div>
       </div>
 
       <style>{`
         @media print {
-          button { display: none; }
+          body { background: white; }
           #invoice { max-width: 100%; }
         }
       `}</style>
