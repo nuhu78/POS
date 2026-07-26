@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { listProducts, createProduct, updateProduct, deleteProduct } from "../../api/products";
 import { listCategories } from "../../api/categories";
@@ -8,34 +9,30 @@ const emptyForm = { name: "", sku: "", category: "", purchase_price: "", selling
 export default function ProductsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const initialLoad = useRef(true);
 
-  const load = useCallback(async () => {
-    if (!initialLoad.current) {
-      setLoading(true);
-    }
-    setError("");
-    try {
-      const params = search ? { search } : {};
-      const [pRes, cRes] = await Promise.all([listProducts(params), listCategories()]);
-      setProducts(pRes.data?.results ?? pRes.data ?? []);
-      setCategories(cRes.data?.results ?? cRes.data ?? []);
-    } catch {
-      setError("Failed to load products.");
-    } finally {
-      setLoading(false);
-      initialLoad.current = false;
-    }
+  useEffect(() => {
+    (async () => {
+      setError("");
+      try {
+        const params = search ? { search } : {};
+        const [pRes, cRes] = await Promise.all([listProducts(params), listCategories()]);
+        setProducts(pRes.data?.results ?? pRes.data ?? []);
+        setCategories(cRes.data?.results ?? cRes.data ?? []);
+      } catch {
+        setError("Failed to load products.");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [search]);
-
-  useEffect(() => { load(); }, [load]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -50,7 +47,7 @@ export default function ProductsPage() {
       }
       setForm(emptyForm);
       setEditing(null);
-      load();
+      setSearch("");
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to save product.");
     }
@@ -66,7 +63,6 @@ export default function ProductsPage() {
     setError("");
     try {
       await deleteProduct(id);
-      load();
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to delete product.");
     }

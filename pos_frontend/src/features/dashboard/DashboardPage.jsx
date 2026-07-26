@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { getDashboard } from "../../api/reports";
 import { getLowStock } from "../../api/products";
+import { useAuth } from "../../auth/AuthContext";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const prefix = user?.role === "admin" ? "/admin" : "/cashier";
   const [data, setData] = useState(null);
   const [lowStock, setLowStock] = useState([]);
 
@@ -59,7 +63,11 @@ export default function DashboardPage() {
                 {lowStock.map((p) => (
                   <tr key={p.id} className="border-b border-gray-100">
                     <td className="p-2">{p.name}</td>
-                    <td className="p-2 text-gray-500">{p.sku}</td>
+                    <td className="p-2">
+                      <Link to={`${prefix}/products?search=${p.sku}`} className="text-amber-600 hover:text-amber-800 underline">
+                        {p.sku}
+                      </Link>
+                    </td>
                     <td className="p-2 text-red-600 font-semibold">{p.stock}</td>
                     <td className="p-2 text-gray-500">{p.low_stock_threshold}</td>
                   </tr>

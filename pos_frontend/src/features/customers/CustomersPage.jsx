@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { listCustomers, createCustomer, updateCustomer, deleteCustomer, getPurchaseHistory } from "../../api/customers";
 
@@ -15,26 +15,21 @@ export default function CustomersPage() {
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const initialLoad = useRef(true);
 
-  const load = useCallback(async () => {
-    if (!initialLoad.current) {
-      setLoading(true);
-    }
-    setError("");
-    try {
-      const params = search ? { search } : {};
-      const { data } = await listCustomers(params);
-      setCustomers(data?.results ?? data ?? []);
-    } catch {
-      setError("Failed to load customers.");
-    } finally {
-      setLoading(false);
-      initialLoad.current = false;
-    }
+  useEffect(() => {
+    (async () => {
+      setError("");
+      try {
+        const params = search ? { search } : {};
+        const { data } = await listCustomers(params);
+        setCustomers(data?.results ?? data ?? []);
+      } catch {
+        setError("Failed to load customers.");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [search]);
-
-  useEffect(() => { load(); }, [load]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -49,7 +44,6 @@ export default function CustomersPage() {
       }
       setForm(emptyForm);
       setEditing(null);
-      load();
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to save customer.");
     }
@@ -65,7 +59,6 @@ export default function CustomersPage() {
     setError("");
     try {
       await deleteCustomer(id);
-      load();
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to delete customer.");
     }
