@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 
 export default function LoginPage() {
@@ -42,6 +42,7 @@ export default function LoginPage() {
       <button type="submit" disabled={loading}>
         {loading ? "Logging in..." : "Login"}
       </button>
+      <p>No account? <Link to="/register">Register here</Link></p>
     </form>
   );
 }
