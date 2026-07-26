@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { listProducts } from "../../api/products";
 import { listCustomers } from "../../api/customers";
 import { createSale } from "../../api/sales";
 
 export default function POSScreen() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
@@ -11,7 +13,6 @@ export default function POSScreen() {
   const [customerId, setCustomerId] = useState("");
   const [discount, setDiscount] = useState("0.00");
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [paid, setPaid] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -90,6 +91,7 @@ export default function POSScreen() {
         <h2>Sale Complete</h2>
         <p>Invoice: {success.invoice_number}</p>
         <p>Total: {success.total}</p>
+        <button onClick={() => navigate(`/cashier/invoices/${success.id}`)}>View Invoice</button>
         <button onClick={() => setSuccess(null)}>New Sale</button>
       </div>
     );

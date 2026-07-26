@@ -8,6 +8,8 @@ import CategoriesPage from "../features/categories/CategoriesPage";
 import ProductsPage from "../features/products/ProductsPage";
 import CustomersPage from "../features/customers/CustomersPage";
 import POSScreen from "../features/pos/POSScreen";
+import InvoicePage from "../features/invoices/InvoicePage";
+import InvoiceListPage from "../features/invoices/InvoiceListPage";
 
 export const router = createBrowserRouter([
   {
@@ -30,7 +32,7 @@ export const router = createBrowserRouter([
       { path: "products", element: <ProductsPage /> },
       { path: "categories", element: <CategoriesPage /> },
       { path: "customers", element: <CustomersPage /> },
-      { path: "sales", element: <div>Sales</div> },
+      { path: "sales", element: <InvoiceListPage /> },
       { path: "reports", element: <div>Reports</div> },
       { path: "settings", element: <div>Settings</div> },
     ],
@@ -46,7 +48,8 @@ export const router = createBrowserRouter([
       { index: true, element: <POSScreen /> },
       { path: "products", element: <ProductsPage /> },
       { path: "customers", element: <CustomersPage /> },
-      { path: "invoices", element: <div>Invoices</div> },
+      { path: "invoices", element: <InvoiceListPage /> },
+      { path: "invoices/:id", element: <InvoicePage /> },
     ],
   },
   {
