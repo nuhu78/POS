@@ -76,8 +76,8 @@ class SaleSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {
                             "code": "INSUFFICIENT_STOCK",
-                            "message": f"Not enough stock for {product.sku} (requested {item['quantity']}, available {product.stock}).",
-                            "fields": {f"items.{items_data.index(item)}.quantity": ["Requested quantity exceeds available stock."]},
+                            "message": f"Sorry, we only have {product.stock} unit(s) of {product.sku} in stock.",
+                            "fields": {f"items.{items_data.index(item)}.quantity": [f"Only {product.stock} available, you requested {item['quantity']}."]},
                         }
                     )
                 price = product.selling_price
