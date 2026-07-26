@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
       window.__refresh_token = data.refresh;
       const payload = JSON.parse(atob(data.access.split(".")[1]));
       setUser({ email: payload.email, role: payload.role });
+      return payload.role;
     } finally {
       setLoading(false);
     }

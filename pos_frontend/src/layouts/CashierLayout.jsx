@@ -13,9 +13,9 @@ export default function CashierLayout() {
   return (
     <div>
       <nav>
-        <Link to="/pos">POS</Link>
-        <Link to="/customers">Customers</Link>
-        <Link to="/invoices">Invoices</Link>
+        <Link to="">POS</Link>
+        <Link to="customers">Customers</Link>
+        <Link to="invoices">Invoices</Link>
         <button onClick={handleLogout}>Logout</button>
       </nav>
       <main>

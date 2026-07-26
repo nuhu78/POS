@@ -6,6 +6,7 @@ import LoginPage from "../features/dashboard/LoginPage";
 import RegisterPage from "../features/dashboard/RegisterPage";
 import CategoriesPage from "../features/categories/CategoriesPage";
 import ProductsPage from "../features/products/ProductsPage";
+import CustomersPage from "../features/customers/CustomersPage";
 
 export const router = createBrowserRouter([
   {
@@ -27,7 +28,7 @@ export const router = createBrowserRouter([
       { index: true, element: <div>Admin Dashboard</div> },
       { path: "products", element: <ProductsPage /> },
       { path: "categories", element: <CategoriesPage /> },
-      { path: "customers", element: <div>Customers</div> },
+      { path: "customers", element: <CustomersPage /> },
       { path: "sales", element: <div>Sales</div> },
       { path: "reports", element: <div>Reports</div> },
       { path: "settings", element: <div>Settings</div> },
@@ -43,7 +44,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <div>POS Screen</div> },
       { path: "products", element: <ProductsPage /> },
-      { path: "customers", element: <div>Customers</div> },
+      { path: "customers", element: <CustomersPage /> },
       { path: "invoices", element: <div>Invoices</div> },
     ],
   },

@@ -13,8 +13,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     try {
-      await login(email, password);
-      const role = JSON.parse(atob(window.__access_token.split(".")[1])).role;
+      const role = await login(email, password);
       navigate(role === "admin" ? "/admin" : "/cashier", { replace: true });
     } catch {
       setError("Invalid email or password.");
