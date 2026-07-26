@@ -61,13 +61,16 @@ export default function InvoicePage() {
       <div style={{ marginTop: "1rem", textAlign: "right" }}>
         <p><strong>Subtotal:</strong> {sale.subtotal} {sale.shop.currency}</p>
         <p><strong>Discount:</strong> {sale.discount}</p>
+        {parseFloat(sale.shop.tax_percentage) > 0 && (
+          <p><strong>Tax ({sale.shop.tax_percentage}%):</strong> {(parseFloat(sale.subtotal) * parseFloat(sale.shop.tax_percentage) / 100).toFixed(2)}</p>
+        )}
         <p style={{ fontSize: "1.2rem" }}><strong>Total:</strong> {sale.total} {sale.shop.currency}</p>
         <p><strong>Paid via:</strong> {sale.payment.method}</p>
       </div>
 
       <hr />
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
-        <p style={{ fontSize: "0.85rem" }}>Thank you for your purchase!</p>
+        {sale.shop.receipt_footer && <p style={{ fontSize: "0.85rem", fontStyle: "italic" }}>{sale.shop.receipt_footer}</p>}
         <button onClick={() => window.print()}>Print</button>
         <button onClick={() => navigate("/cashier")} style={{ marginLeft: "0.5rem" }}>Back to POS</button>
       </div>

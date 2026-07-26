@@ -12,6 +12,7 @@ import POSScreen from "../features/pos/POSScreen";
 import InvoicePage from "../features/invoices/InvoicePage";
 import InvoiceListPage from "../features/invoices/InvoiceListPage";
 import ReportsPage from "../features/reports/ReportsPage";
+import SettingsPage from "../features/settings/SettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -36,7 +37,7 @@ export const router = createBrowserRouter([
       { path: "customers", element: <CustomersPage /> },
       { path: "sales", element: <InvoiceListPage /> },
       { path: "reports", element: <ReportsPage /> },
-      { path: "settings", element: <div>Settings</div> },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
   {

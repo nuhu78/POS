@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { getDashboard } from "../../api/reports";
+import { getLowStock } from "../../api/products";
 
 export default function DashboardPage() {
   const [data, setData] = useState(null);
+  const [lowStock, setLowStock] = useState([]);
 
   useEffect(() => {
     (async () => {
-      const { data: d } = await getDashboard();
-      setData(d);
+      const [dRes, lsRes] = await Promise.all([getDashboard(), getLowStock()]);
+      setData(dRes.data);
+      setLowStock(lsRes.data ?? []);
     })();
   }, []);
 
@@ -35,6 +38,22 @@ export default function DashboardPage() {
           <p style={{ fontSize: "1.5rem", color: data.low_stock_products > 0 ? "red" : "inherit" }}>{data.low_stock_products}</p>
         </div>
       </div>
+
+      {lowStock.length > 0 && (
+        <div style={{ marginTop: "1rem" }}>
+          <h2 style={{ color: "red" }}>Low Stock Alerts</h2>
+          <table>
+            <thead><tr><th>Product</th><th>SKU</th><th>Stock</th><th>Threshold</th></tr></thead>
+            <tbody>
+              {lowStock.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.name}</td><td>{p.sku}</td><td style={{ color: "red" }}>{p.stock}</td><td>{p.low_stock_threshold}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
