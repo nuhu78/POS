@@ -10,21 +10,21 @@ export default function CategoriesPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const { data } = await listCategories();
-      setCategories(data?.results ?? data ?? []);
-    } catch {
-      setError("Failed to load categories.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    (async () => {
+      setError("");
+      try {
+        const { data } = await listCategories();
+        setCategories(data?.results ?? data ?? []);
+      } catch {
+        setError("Failed to load categories.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [refreshKey]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -38,7 +38,7 @@ export default function CategoriesPage() {
       }
       setName("");
       setEditing(null);
-      load();
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to save category.");
     }
@@ -54,7 +54,7 @@ export default function CategoriesPage() {
     setError("");
     try {
       await deleteCategory(id);
-      load();
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to delete category.");
     }

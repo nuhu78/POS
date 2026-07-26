@@ -17,6 +17,7 @@ export default function ProductsPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -32,7 +33,7 @@ export default function ProductsPage() {
         setLoading(false);
       }
     })();
-  }, [search]);
+  }, [search, refreshKey]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -48,6 +49,7 @@ export default function ProductsPage() {
       setForm(emptyForm);
       setEditing(null);
       setSearch("");
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to save product.");
     }
@@ -63,6 +65,7 @@ export default function ProductsPage() {
     setError("");
     try {
       await deleteProduct(id);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to delete product.");
     }

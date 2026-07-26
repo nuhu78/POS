@@ -15,6 +15,7 @@ export default function CustomersPage() {
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -29,7 +30,7 @@ export default function CustomersPage() {
         setLoading(false);
       }
     })();
-  }, [search]);
+  }, [search, refreshKey]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -44,6 +45,7 @@ export default function CustomersPage() {
       }
       setForm(emptyForm);
       setEditing(null);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to save customer.");
     }
@@ -59,6 +61,7 @@ export default function CustomersPage() {
     setError("");
     try {
       await deleteCustomer(id);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Failed to delete customer.");
     }
