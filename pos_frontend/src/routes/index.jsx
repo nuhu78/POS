@@ -4,12 +4,14 @@ import AdminLayout from "../layouts/AdminLayout";
 import CashierLayout from "../layouts/CashierLayout";
 import LoginPage from "../features/dashboard/LoginPage";
 import RegisterPage from "../features/dashboard/RegisterPage";
+import DashboardPage from "../features/dashboard/DashboardPage";
 import CategoriesPage from "../features/categories/CategoriesPage";
 import ProductsPage from "../features/products/ProductsPage";
 import CustomersPage from "../features/customers/CustomersPage";
 import POSScreen from "../features/pos/POSScreen";
 import InvoicePage from "../features/invoices/InvoicePage";
 import InvoiceListPage from "../features/invoices/InvoiceListPage";
+import ReportsPage from "../features/reports/ReportsPage";
 
 export const router = createBrowserRouter([
   {
@@ -28,12 +30,12 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <div>Admin Dashboard</div> },
+      { index: true, element: <DashboardPage /> },
       { path: "products", element: <ProductsPage /> },
       { path: "categories", element: <CategoriesPage /> },
       { path: "customers", element: <CustomersPage /> },
       { path: "sales", element: <InvoiceListPage /> },
-      { path: "reports", element: <div>Reports</div> },
+      { path: "reports", element: <ReportsPage /> },
       { path: "settings", element: <div>Settings</div> },
     ],
   },

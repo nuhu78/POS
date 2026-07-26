@@ -1,8 +1,10 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-
-router = DefaultRouter()
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+    path("daily/", views.DailySalesView.as_view(), name="daily-sales"),
+    path("monthly/", views.MonthlySalesView.as_view(), name="monthly-sales"),
+    path("products/", views.ProductSalesView.as_view(), name="product-sales"),
+    path("best-sellers/", views.BestSellersView.as_view(), name="best-sellers"),
 ]
