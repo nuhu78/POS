@@ -7,6 +7,7 @@ import RegisterPage from "../features/dashboard/RegisterPage";
 import CategoriesPage from "../features/categories/CategoriesPage";
 import ProductsPage from "../features/products/ProductsPage";
 import CustomersPage from "../features/customers/CustomersPage";
+import POSScreen from "../features/pos/POSScreen";
 
 export const router = createBrowserRouter([
   {
@@ -42,7 +43,7 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <div>POS Screen</div> },
+      { index: true, element: <POSScreen /> },
       { path: "products", element: <ProductsPage /> },
       { path: "customers", element: <CustomersPage /> },
       { path: "invoices", element: <div>Invoices</div> },
