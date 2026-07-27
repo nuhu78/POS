@@ -55,18 +55,15 @@ Under **Environment Variables**, add:
 | `ALLOWED_HOSTS` | `.onrender.com,localhost` |
 | `CORS_ALLOWED_ORIGINS` | Your frontend URL (e.g. `https://ai-pos-frontend.onrender.com`) — update after deploying the frontend |
 | `DEBUG` | `False` |
+| `DJANGO_SUPERUSER_EMAIL` | Your admin email (e.g. `admin@shop.com`) |
+| `DJANGO_SUPERUSER_NAME` | `Admin` |
+| `DJANGO_SUPERUSER_PASSWORD` | A strong password |
 
 > **Important**: When you first deploy, the `CORS_ALLOWED_ORIGINS` won't be known yet. You can set a placeholder like `http://localhost:5173` and update it after the frontend is live.
 
-### 2.4 First-Time Setup (Superuser)
+### 2.4 Auto-Created Superuser
 
-After the first successful deploy, open the **Render Shell** for the backend service and run:
-
-```bash
-python manage.py createsuperuser --settings=config.settings.prod
-```
-
-Alternatively, use a one-off script or a data migration — but for a free-tier project, the Shell approach is simplest.
+The `release` command in the `Procfile` runs `ensure_superuser` after every deploy. It reads the `DJANGO_SUPERUSER_*` env vars (set in 2.3) — creates the admin on first deploy and skips silently on subsequent ones (built-in user-exists check).
 
 ---
 
