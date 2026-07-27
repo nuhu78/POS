@@ -39,10 +39,16 @@ git push origin main
 |---|---|
 | **Name** | `ai-pos-backend` |
 | **Environment** | `Python` |
+| **Field** | Value |
+|---|---|---|
+| **Name** | `ai-pos-backend` |
+| **Environment** | `Python` |
 | **Build Command** | `pip install -r requirements.txt && python manage.py collectstatic --noinput --settings=config.settings.prod` |
-| **Start Command** | `gunicorn config.wsgi --workers 4 --max-requests 1200 --bind 0.0.0.0:${PORT:-8000}` |
+| **Start Command** | *(leave blank — uses `Procfile` inside `pos_backend/`)* |
 | **Root Directory** | `pos_backend` |
 | **Plan** | Free |
+
+The `Procfile` lives inside `pos_backend/` and defines both the `web` (gunicorn) and `release` (migrate + superuser) commands. No need to set a separate Start Command in the dashboard.
 
 ### 2.3 Add Environment Variables
 
