@@ -39,16 +39,11 @@ git push origin main
 |---|---|
 | **Name** | `ai-pos-backend` |
 | **Environment** | `Python` |
-| **Field** | Value |
-|---|---|---|
-| **Name** | `ai-pos-backend` |
-| **Environment** | `Python` |
-| **Build Command** | `pip install -r requirements.txt && python manage.py collectstatic --noinput --settings=config.settings.prod` |
-| **Start Command** | *(leave blank — uses `Procfile` inside `pos_backend/`)* |
-| **Root Directory** | `pos_backend` |
+| **Build Command** | `pip install -r pos_backend/requirements.txt && python pos_backend/manage.py collectstatic --noinput --settings=config.settings.prod` |
+| **Start Command** | `cd pos_backend && python manage.py migrate --settings=config.settings.prod && python manage.py ensure_superuser --settings=config.settings.prod && gunicorn config.wsgi --workers 4 --max-requests 1200 --bind 0.0.0.0:${PORT:-8000}` |
 | **Plan** | Free |
 
-The `Procfile` lives inside `pos_backend/` and defines both the `web` (gunicorn) and `release` (migrate + superuser) commands. No need to set a separate Start Command in the dashboard.
+> **Note**: No `Root Directory` or `Procfile` needed — the Build and Start Commands use `pos_backend/` paths directly. The Start Command runs migrations + superuser creation before starting gunicorn on every restart.
 
 ### 2.3 Add Environment Variables
 
@@ -69,7 +64,7 @@ Under **Environment Variables**, add:
 
 ### 2.4 Auto-Created Superuser
 
-The `release` command in the `Procfile` runs `ensure_superuser` after every deploy. It reads the `DJANGO_SUPERUSER_*` env vars (set in 2.3) — creates the admin on first deploy and skips silently on subsequent ones (built-in user-exists check).
+The Start Command runs `ensure_superuser` after every deploy. It reads the `DJANGO_SUPERUSER_*` env vars (set in 2.3) — creates the admin on first deploy and skips silently on subsequent ones (built-in user-exists check).
 
 ---
 
