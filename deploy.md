@@ -40,7 +40,7 @@ git push origin main
 | **Name** | `ai-pos-backend` |
 | **Environment** | `Python` |
 | **Build Command** | `pip install -r requirements.txt && python manage.py collectstatic --noinput --settings=config.settings.prod` |
-| **Start Command** | `gunicorn config.wsgi --workers 4 --max-requests 1200` |
+| **Start Command** | `gunicorn config.wsgi --workers 4 --max-requests 1200 --bind 0.0.0.0:${PORT:-8000}` |
 | **Root Directory** | `pos_backend` |
 | **Plan** | Free |
 
