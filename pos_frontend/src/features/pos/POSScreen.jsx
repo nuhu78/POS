@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../components/Toast";
+import Button from "../../components/Button";
 import { listProducts } from "../../api/products";
 import { listCustomers } from "../../api/customers";
 import { createSale } from "../../api/sales";
 
 export default function POSScreen() {
   const navigate = useNavigate();
+  const showToast = useToast();
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
@@ -13,7 +16,6 @@ export default function POSScreen() {
   const [customerId, setCustomerId] = useState("");
   const [discount, setDiscount] = useState("0.00");
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export default function POSScreen() {
       const { data } = await listProducts(params);
       setProducts(data?.results ?? data ?? []);
     } catch {
-      setError("Failed to load products.");
+      showToast("Failed to load products.", "error");
     }
   }, [search]);
 
@@ -33,7 +35,6 @@ export default function POSScreen() {
       const { data } = await listCustomers();
       setCustomers(data?.results ?? data ?? []);
     } catch {
-      /* customers are optional */
     } finally {
       setLoading(false);
     }
@@ -72,8 +73,6 @@ export default function POSScreen() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (cart.length === 0) return;
-    setError("");
-    setSuccess(null);
     setSubmitting(true);
     try {
       const payload = {
@@ -87,9 +86,10 @@ export default function POSScreen() {
       setCart([]);
       setDiscount("0.00");
       setCustomerId("");
+      showToast("Sale completed!", "success");
     } catch (err) {
       const msg = err.response?.data?.error?.message || "Sale failed.";
-      setError(msg);
+      showToast(msg, "error");
     } finally {
       setSubmitting(false);
     }
@@ -99,13 +99,13 @@ export default function POSScreen() {
 
   if (success) {
     return (
-      <div className="card max-w-md mx-auto mt-12 text-center">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm max-w-md mx-auto mt-12 text-center">
         <h2 className="text-xl font-bold text-green-600 mb-2">Sale Complete</h2>
         <p className="text-gray-600">Invoice: {success.invoice_number}</p>
         <p className="text-lg font-semibold text-gray-800 mt-1">Total: {success.total}</p>
         <div className="flex gap-2 justify-center mt-4">
-          <button onClick={() => navigate(`/cashier/invoices/${success.id}`)} className="btn-primary">View Invoice</button>
-          <button onClick={() => setSuccess(null)} className="btn-ghost">New Sale</button>
+          <Button onClick={() => navigate(`/cashier/invoices/${success.id}`)}>View Invoice</Button>
+          <Button variant="ghost" onClick={() => setSuccess(null)}>New Sale</Button>
         </div>
       </div>
     );
@@ -113,14 +113,13 @@ export default function POSScreen() {
 
   return (
     <div className="flex flex-col md:flex-row gap-4">
-      {/* Product panel */}
       <div className="md:w-1/2">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Products</h2>
         <input
           placeholder="Search product..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="input mb-3"
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-amber-500 focus:shadow-[0_0_0_2px_rgba(245,158,11,0.2)] mb-3"
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto pr-1">
           {products.length === 0 && <p className="text-gray-500 col-span-full">No products found.</p>}
@@ -138,17 +137,16 @@ export default function POSScreen() {
         </div>
       </div>
 
-      {/* Cart panel */}
       <div className="md:w-1/2">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Cart</h2>
 
         <div className="space-y-2 max-h-[30vh] overflow-y-auto mb-4">
           {cart.length === 0 && <p className="text-gray-500 text-sm">Cart is empty.</p>}
           {cart.map((item) => (
-            <div key={item.product} className="card py-2 px-3">
+            <div key={item.product} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm py-2 px-3">
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">{item.name}</span>
-                <button onClick={() => removeFromCart(item.product)} className="text-red-500 text-xs font-bold hover:text-red-700">✕</button>
+                <button onClick={() => removeFromCart(item.product)} className="text-red-500 text-xs font-bold hover:text-red-700">&times;</button>
               </div>
               <div className="flex items-center gap-2 mt-1 text-sm">
                 <span className="text-gray-500">Qty:</span>
@@ -170,14 +168,14 @@ export default function POSScreen() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Customer</label>
-              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="input">
+              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
                 <option value="">Walk-in</option>
                 {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Payment</label>
-              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="input">
+              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
                 <option value="cash">Cash</option>
                 <option value="card">Card</option>
                 <option value="mobile_banking">Mobile Banking</option>
@@ -188,11 +186,11 @@ export default function POSScreen() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Discount</label>
-              <input type="number" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} className="input" />
+              <input type="number" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Amount given</label>
-              <input type="number" step="0.01" className="input" placeholder="0.00" />
+              <input type="number" step="0.01" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="0.00" />
             </div>
           </div>
 
@@ -205,10 +203,9 @@ export default function POSScreen() {
             <span className="text-amber-600">{total.toFixed(2)} BDT</span>
           </div>
 
-          <button type="submit" className="btn-primary w-full" disabled={submitting || cart.length === 0}>
-            {submitting ? "Processing..." : "Complete Sale"}
-          </button>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          <Button type="submit" className="w-full" disabled={cart.length === 0} loading={submitting}>
+            Complete Sale
+          </Button>
         </form>
       </div>
     </div>
