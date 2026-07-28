@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import Button from "../../components/Button";
 
@@ -58,9 +58,17 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
-        <p className="text-sm text-gray-500 text-center mt-4">
-          No account? <Link to="/register" className="text-amber-600 hover:text-amber-800">Register here</Link>
-        </p>
+
+
+        <div className="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500 space-y-2">
+          <p className="text-amber-700 font-semibold">⚠️ Important</p>
+          <p>The backend is hosted on Render Free Tier. On the first visit, it may take 30–60 seconds for the server to wake up.</p>
+          <p className="font-semibold text-gray-600 mt-2">Demo Accounts</p>
+          <div className="bg-amber-50 rounded-lg p-2 space-y-1">
+            <p><span className="font-medium">Admin</span> — admin@pos.com / admin123</p>
+            <p><span className="font-medium">Cashier</span> — cashier@pos.com / cashier123</p>
+          </div>
+        </div>
       </div>
     </div>
   );

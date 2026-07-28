@@ -10,6 +10,7 @@ const links = [
   { to: "sales", label: "Sales", icon: "🧾" },
   { to: "reports", label: "Reports", icon: "📈" },
   { to: "settings", label: "Settings", icon: "⚙️" },
+  { to: "/register", label: "Register", icon: "➕" },
 ];
 
 export default function AdminLayout() {
