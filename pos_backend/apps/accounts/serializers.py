@@ -18,6 +18,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["name", "email", "password", "role"]
+        extra_kwargs = {
+            "email": {"validators": [serializers.UniqueValidator(queryset=User.objects.all())]},
+        }
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
