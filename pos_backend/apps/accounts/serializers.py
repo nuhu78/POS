@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
 
@@ -19,7 +20,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ["name", "email", "password", "role"]
         extra_kwargs = {
-            "email": {"validators": [serializers.UniqueValidator(queryset=User.objects.all())]},
+            "email": {"validators": [UniqueValidator(queryset=User.objects.all())]},
         }
 
     def create(self, validated_data):
