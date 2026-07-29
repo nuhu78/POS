@@ -19,8 +19,12 @@ export default function LoginPage() {
       const role = await login(email, password);
       navigate(role === "admin" ? "/admin" : "/cashier", { replace: true });
     } catch (err) {
-      const msg = err.response?.data?.error?.message || "Invalid email or password.";
-      setError(msg);
+      if (err.isNetwork) {
+        setError(err.message);
+      } else {
+        const msg = err.response?.data?.error?.message || "Invalid email or password.";
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

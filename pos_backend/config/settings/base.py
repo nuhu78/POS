@@ -72,6 +72,10 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 if env.str("DATABASE_URL", None):
     DATABASES = {"default": env.db()}
+    DATABASES["default"]["CONN_MAX_AGE"] = 300
+    DATABASES["default"]["OPTIONS"] = {
+        "connect_timeout": 5,
+    }
 else:
     DATABASES = {
         "default": {

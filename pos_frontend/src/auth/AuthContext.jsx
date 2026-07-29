@@ -13,9 +13,21 @@ export function AuthProvider({ children }) {
       const { data } = await client.post("/auth/login/", { email, password });
       window.__access_token = data.access;
       window.__refresh_token = data.refresh;
-      const payload = JSON.parse(atob(data.access.split(".")[1]));
+      let payload;
+      try {
+        payload = JSON.parse(atob(data.access.split(".")[1]));
+      } catch {
+        throw new Error("Invalid server response.");
+      }
       setUser({ email: payload.email, role: payload.role });
       return payload.role;
+    } catch (err) {
+      if (!err.response) {
+        const networkErr = new Error("Cannot reach server. Please check your connection and try again.");
+        networkErr.isNetwork = true;
+        throw networkErr;
+      }
+      throw err;
     } finally {
       setLoading(false);
     }

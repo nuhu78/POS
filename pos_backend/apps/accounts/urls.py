@@ -1,16 +1,20 @@
 from django.urls import path
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
     TokenBlacklistView,
 )
 from rest_framework_simplejwt.views import TokenViewBase
 from .serializers import CustomTokenObtainPairSerializer
 from . import views
+from .views import retry_on_db_error
 
 
 class CustomTokenObtainPairView(TokenViewBase):
     serializer_class = CustomTokenObtainPairSerializer
+
+    @retry_on_db_error()
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 urlpatterns = [
