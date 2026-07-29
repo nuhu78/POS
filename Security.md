@@ -21,6 +21,7 @@
 - Explicit `CHECK` constraints at the DB level as a second line of defense (non-negative stock, non-negative prices, quantity > 0).
 - Sanitize/validate phone numbers and email formats using DRF's built-in field validators.
 - Reject any client-supplied `subtotal`/`total`/`price` field on sale creation — these are always server-computed (see Architecture.md §6, Prompts.md Phase 4).
+- Validate uploaded files on import: check the file extension (`.xlsx` only), verify the content type (`application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`), and reject files containing macros (`.xlsm`) or any non-Excel format — never pass an unvalidated file stream to `openpyxl`.
 
 ## 4. Transport & Infra Security
 

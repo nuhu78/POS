@@ -70,6 +70,7 @@ Use 409 (not 400) specifically for business-rule conflicts like insufficient sto
 | Sale total mismatch (payment amount ≠ computed total) | Reject before commit, 400, "Payment amount does not match sale total." |
 | Expired/invalid JWT | 401, frontend triggers silent refresh or redirects to login on refresh failure |
 | Render free-tier cold start / timeout | Frontend shows a distinct "waking up the server, please wait" state rather than a generic error, triggered by a timeout longer than the normal request budget |
+| Import file validation (invalid format, corrupted file, wrong extension) | Return 400 with `error.code: "INVALID_FILE"` and a clear message about what is wrong |
 
 ## 5. Frontend Error Handling
 

@@ -153,6 +153,38 @@ PostgreSQL instance. Confirm migrations run and a superuser can be created
 as part of the deploy process.
 ```
 
+## Phase 10 — Product Import/Export (Excel)
+
+```
+Backend:
+- Add openpyxl to requirements.txt.
+- On ProductViewSet, add two @action endpoints:
+  1. GET export/ — build an openpyxl Workbook with columns SKU, Name,
+     Category (by name), Purchase Price, Selling Price, Stock,
+     Low Stock Threshold, Status; return as HttpResponse with
+     content-type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+     and Content-Disposition attachment.
+  2. POST import/ — accept an uploaded .xlsx file; for each row (skip
+     header), lookup Product by SKU: if exists → update, if not → create.
+     Resolve Category by name (case-insensitive); skip row if category not
+     found. Skip rows with blank SKU. Wrap in transaction.atomic. Return
+     JSON {processed, added, updated, skipped: [{row, reason}]}. Restrict
+     import/export to admin role (POST import is already restricted by
+     AdminOrReadOnly; export GET is safe-method but the UI only shows the
+     button for admin).
+
+Frontend:
+- In ProductsPage, add "Export Excel" and "Import Excel" buttons next to
+  the existing Add Product button (admin only).
+- Export: GET /products/export/ with responseType blob, create a download
+  link via URL.createObjectURL and click it.
+- Import: hidden <input type="file" accept=".xlsx"> triggered by the
+  Import button; on file select POST /products/import/ as FormData. On
+  success, open a Modal showing the summary table (processed, added,
+  updated, skipped rows with reasons). On error, show toast.
+- Add exportProducts() and importProducts(file) to api/products.js.
+```
+
 ## General Prompting Tips for This Project
 
 - Always paste in the relevant section of `Database.md` when asking for a new model — this prevents field-name drift between AI-generated apps.

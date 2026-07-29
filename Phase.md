@@ -59,13 +59,21 @@ Each phase is scoped so it can be handed to an AI coding tool (see `Prompts.md`)
 - Basic automated tests: model tests, serializer tests, key endpoint tests (auth, sale creation, stock decrement).
 
 ## Phase 9 — Deployment
+
 - Provision Render Postgres, Render Web Service (backend), Render Static Site (frontend).
 - Set production env vars (`SECRET_KEY`, `DATABASE_URL`, `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, `DEBUG=False`).
 - Run migrations against the Render DB, create a superuser, smoke-test the deployed flow end-to-end.
 - **Exit criteria**: a stranger can open the deployed frontend URL, log in, and complete a sale.
 
+## Phase 10 — Product Import/Export (Excel)
+
+- Add `openpyxl` to requirements for Excel read/write.
+- **Backend** (`ProductViewSet`): `GET /api/v1/products/export/` returns an `.xlsx` workbook with columns (SKU, Name, Category, Purchase Price, Selling Price, Stock, Low Stock Threshold, Status); `POST /api/v1/products/import/` accepts an uploaded `.xlsx`, reads rows, uses SKU as unique key to create-or-update, resolves category by name, skips invalid rows, and returns a summary (processed / added / updated / skipped with reasons).
+- **Frontend** (`ProductsPage`): "Export Excel" button triggers browser download; "Import Excel" button opens a file picker, posts the file, then shows a Modal with the import summary.
+- **Exit criteria**: an admin can download all products as `.xlsx`, edit/add rows in Excel, re-upload, and see the correct counts of new/updated/skipped rows.
+
 ## Suggested Order & Dependencies
 ```
-Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7 → Phase 8 → Phase 9
+Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7 → Phase 8 → Phase 9 → Phase 10
 ```
 Phases 2 and 3 have no dependency on each other and can be built in either order or in parallel. Everything from Phase 4 onward depends on Phases 1–3 being functional.

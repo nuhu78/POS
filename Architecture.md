@@ -21,6 +21,7 @@ A single-shop POS system with a Django REST Framework backend, a React + Vite SP
 | Frontend | React 18 + Vite | SPA, calls API via `axios` |
 | Database | PostgreSQL | Render managed Postgres (free tier) |
 | Static/media | WhiteNoise (backend static) | Render free-tier disk is ephemeral — don't rely on local file storage for anything persistent (e.g. uploaded product images); use a free object-storage tier (Cloudinary) if that's ever needed |
+| Excel handling | `openpyxl` | Product import/export (.xlsx) |
 | Deployment | Render Web Service (backend) + Render Static Site (frontend) | Two separate Render services |
 | Env config | `django-environ` / `.env` | Never commit secrets |
 
@@ -83,6 +84,7 @@ pos_frontend/
 - Pagination: DRF `PageNumberPagination` for list endpoints (products, customers, sales history).
 - Filtering/search: `django-filter` + DRF `SearchFilter` for product/customer search.
 - Nested writes: a `Sale` create request accepts a payload with `items: [...]` and `payment: {...}`; the serializer creates `Sale`, `SaleItem` rows, and `Payment` in one DB transaction (`transaction.atomic`) and decrements product stock.
+- Product import/export: `GET /api/v1/products/export/` returns an `.xlsx` workbook with all products; `POST /api/v1/products/import/` accepts an `.xlsx` file and creates-or-updates products by SKU in a single atomic transaction with a JSON summary response.
 
 ## 6. Auth Flow
 
