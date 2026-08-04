@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "../auth/ProtectedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import CashierLayout from "../layouts/CashierLayout";
+import ServerGate from "../features/dashboard/ServerGate";
 import LoginPage from "../features/dashboard/LoginPage";
 import RegisterPage from "../features/dashboard/RegisterPage";
 import DashboardPage from "../features/dashboard/DashboardPage";
@@ -15,6 +16,10 @@ import ReportsPage from "../features/reports/ReportsPage";
 import SettingsPage from "../features/settings/SettingsPage";
 
 export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <ServerGate />,
+  },
   {
     path: "/login",
     element: <LoginPage />,
@@ -58,6 +63,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Navigate to="/login" replace />,
+    element: <Navigate to="/" replace />,
   },
 ]);

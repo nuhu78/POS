@@ -32,7 +32,7 @@ client.interceptors.response.use(
       } catch {
         window.__access_token = null;
         window.__refresh_token = null;
-        window.location.href = "/login";
+        window.location.href = "/";
       }
     }
     return Promise.reject(error);
