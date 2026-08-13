@@ -4,9 +4,16 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from apps.sales.models import Sale, SaleItem
 from apps.products.models import Product
 from apps.customers.models import Customer
+
+
+class ReportPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 class DashboardView(APIView):
@@ -90,6 +97,10 @@ class ProductSalesView(APIView):
             qs = qs.filter(sale__date__gte=start_date)
         if end_date:
             qs = qs.filter(sale__date__lte=end_date)
+        paginator = ReportPagination()
+        page = paginator.paginate_queryset(qs, request, view=self)
+        if page is not None:
+            return paginator.get_paginated_response(page)
         return Response(list(qs))
 
 
@@ -105,9 +116,14 @@ class BestSellersView(APIView):
         ).annotate(
             total_qty=Sum("quantity"),
             total_revenue=Sum(F("quantity") * F("price")),
-        ).order_by("-total_qty")[:top_n]
+        ).order_by("-total_qty")
         if start_date:
             qs = qs.filter(sale__date__gte=start_date)
         if end_date:
             qs = qs.filter(sale__date__lte=end_date)
-        return Response(list(qs))
+        results = list(qs[:top_n])
+        paginator = ReportPagination()
+        page = paginator.paginate_queryset(results, request, view=self)
+        if page is not None:
+            return paginator.get_paginated_response(page)
+        return Response(results)
