@@ -10,6 +10,7 @@ from django.db.models import F
 from .models import Product
 from .serializers import ProductSerializer
 from .permissions import AdminOrReadOnly
+from .filters import ProductFilter
 from apps.categories.models import Category
 
 
@@ -22,7 +23,7 @@ class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [AdminOrReadOnly]
     search_fields = ["name", "sku"]
-    filterset_fields = ["category", "status"]
+    filterset_class = ProductFilter
 
     @action(detail=False, methods=["get"])
     def low_stock(self, request):
