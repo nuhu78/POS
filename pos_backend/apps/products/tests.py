@@ -1,5 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
+import io
+from openpyxl import load_workbook
 from apps.accounts.models import User
 from apps.categories.models import Category
 from .models import Product
@@ -115,3 +117,34 @@ class ProductFilterTests(TestCase):
             "category": self.cat_a.id, "price_min": 100, "price_max": 130,
         })
         self.assertEqual(self.skus(resp), ["CHR-001"])
+
+    def exported_skus(self, params):
+        resp = self.client.get("/api/v1/products/export/", params)
+        self.assertEqual(resp.status_code, 200)
+        wb = load_workbook(io.BytesIO(resp.content), read_only=True)
+        ws = wb.active
+        return [row[0] for row in ws.iter_rows(min_row=2, values_only=True)]
+
+    def test_export_respects_stock_filter(self):
+        self.assertEqual(
+            sorted(self.exported_skus({"stock_status": "out"})),
+            ["VAS-001", "VAS-002"],
+        )
+
+    def test_export_respects_price_filter(self):
+        self.assertEqual(
+            self.exported_skus({"price_min": 100, "price_max": 130}),
+            ["CHR-001"],
+        )
+
+    def test_export_respects_search(self):
+        self.assertEqual(
+            sorted(self.exported_skus({"search": "chair"})),
+            ["CHR-001", "CHR-002"],
+        )
+
+    def test_export_respects_category_filter(self):
+        self.assertEqual(
+            sorted(self.exported_skus({"category": self.cat_a.id})),
+            ["CHR-001", "CHR-002"],
+        )

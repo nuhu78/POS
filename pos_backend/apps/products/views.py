@@ -34,13 +34,17 @@ class ProductViewSet(ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def export(self, request):
+        qs = Product.objects.select_related("category").all()
+        qs = ProductFilter(request.GET, queryset=qs).qs
+        qs = filters.SearchFilter().filter_queryset(request, qs, self)
+        qs = qs.order_by("name")
+
         wb = Workbook()
         ws = wb.active
         ws.title = "Products"
         ws.append(EXPORT_HEADERS)
 
-        products = Product.objects.select_related("category").all().order_by("name")
-        for p in products:
+        for p in qs:
             ws.append([
                 p.sku,
                 p.name,

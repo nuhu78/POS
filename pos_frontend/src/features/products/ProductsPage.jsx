@@ -187,7 +187,13 @@ export default function ProductsPage() {
 
   const handleExport = async () => {
     try {
-      const res = await exportProducts();
+      const params = {};
+      if (search) params.search = search;
+      if (category) params.category = category;
+      if (priceMin) params.price_min = priceMin;
+      if (priceMax) params.price_max = priceMax;
+      if (stockStatus !== "all") params.stock_status = stockStatus;
+      const res = await exportProducts(params);
       const url = URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement("a");
       a.href = url;
