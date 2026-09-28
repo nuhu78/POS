@@ -2,7 +2,11 @@ import logging
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration, ignore_logger
+
+# Host-header scanners hitting the raw Render URL produce a 400 per request;
+# that is noise, not a bug (the 400 still shows up in Render's own logs).
+ignore_logger("django.security.DisallowedHost")
 
 _NOISE = {"BrokenPipeError", "KeyboardInterrupt", "Exit"}
 

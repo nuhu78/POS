@@ -75,11 +75,12 @@ The Start Command runs `ensure_superuser` after every deploy. It reads the `DJAN
 1. Create a **Django** project at <https://sentry.io> (name it `ai-pos-backend`) and copy its **DSN** (Settings → Projects → Client Keys (DSN)).
 2. Paste it into the `SENTRY_DSN` env var from 2.3, set `SENTRY_ENVIRONMENT=production` and `SENTRY_RELEASE=$RENDER_GIT_COMMIT` (already listed there).
 3. The SDK is initialized in `config/settings/prod.py` **only when `SENTRY_DSN` is non-empty** — local dev and tests never send events.
-4. Verify after the first deploy: temporarily add a route to `pos_backend/config/urls.py`
-   ```python
-   path("api/v1/_sentry-test/", lambda request: 1 / 0),
+4. Verify after the first deploy:
+   ```bash
+   curl -i https://<your-backend>/api/v1/sentry-test/
    ```
-   hit `https://<your-backend>/api/v1/_sentry-test/`, confirm an issue appears in Sentry (with `environment: production` and the commit SHA), then remove the route and redeploy.
+   The route (`config/urls.py` → `sentry_test`) logs one `INFO` line and raises a `ValueError`, so it fills **both** tabs: an Issue (`ValueError: Sentry test error…`) and the log line in **Logs**. It still returns the normal `{"error": {"code": "SERVER_ERROR", …}}` 500.
+   > Remove `sentry_test` from `config/urls.py` once you have confirmed it works — it is unauthenticated.
 
 > **Two tabs**: **Issues** receives the 500 event; **Logs** receives every `logger.*` line (root logger is `INFO`). A 4xx response or a successful request produces **nothing** in either tab — that is intentional, not a broken setup. If the UI looks empty, check the environment filter (must be `production` or `All`) first.
 

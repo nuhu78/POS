@@ -291,21 +291,24 @@ py manage.py shell
 
 Event appears in Sentry within ~5 s.
 
-**Option B — trigger a real 500** (tests the §5 wiring):
+**Option B — the built-in test route** (tests the §5 wiring):
 
-Temporarily add to `config/urls.py`:
-
-```python
-path("api/v1/_sentry-test/", lambda request: 1 / 0),
-```
-
-Then:
+The repo ships a temporary route `GET /api/v1/sentry-test/` in `config/urls.py` — it logs one `INFO` line and then raises `ValueError`. Hit it on the deployed backend:
 
 ```bash
-curl https://ai-pos-backend.onrender.com/api/v1/_sentry-test/
+curl -i https://ai-pos-backend.onrender.com/api/v1/sentry-test/
 ```
 
-You should get the standard `{"error": {"code": "SERVER_ERROR", ...}}` response **and** an issue in Sentry with the ZeroDivisionError traceback. Remove the route afterwards.
+Expected in Sentry within ~5 s:
+
+| Tab | Entry |
+|---|---|
+| **Issues** | `ValueError: Sentry test error: this issue should appear in Sentry > Issues` (1 event, `environment: production`) |
+| **Logs** | `INFO … Sentry test: INFO log line should appear in the Logs tab` + the `Unhandled exception` error line |
+
+The HTTP response is still the normal `{"error": {"code": "SERVER_ERROR", …}}` with status 500 — the route never leaks a traceback.
+
+> **Remove the route** (`config/urls.py` → `sentry_test`) once you have confirmed both tabs populate; it is unauthenticated and would otherwise let anyone create noise.
 
 **Option C — force a DatabaseError**: temporarily point `DATABASE_URL` at a bad host and hit any endpoint; confirm the event arrives with a traceback (the §5 `logger.exception` change).
 
