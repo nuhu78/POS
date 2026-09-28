@@ -28,3 +28,13 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+if env("SENTRY_DSN", default=""):
+    from config.sentry import init_sentry
+
+    init_sentry(
+        dsn=env("SENTRY_DSN"),
+        environment=env("SENTRY_ENVIRONMENT", default="production"),
+        release=env.str("SENTRY_RELEASE", None),
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", 0.1),
+    )

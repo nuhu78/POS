@@ -59,12 +59,29 @@ Under **Environment Variables**, add:
 | `DJANGO_SUPERUSER_EMAIL` | Your admin email (e.g. `admin@shop.com`) |
 | `DJANGO_SUPERUSER_NAME` | `Admin` |
 | `DJANGO_SUPERUSER_PASSWORD` | A strong password |
+| `SENTRY_DSN` | Sentry project DSN from step 2.5 — leave blank to disable error monitoring |
+| `SENTRY_ENVIRONMENT` | `production` |
+| `SENTRY_TRACES_SAMPLE_RATE` | `0.1` |
+| `SENTRY_RELEASE` | `$RENDER_GIT_COMMIT` |
 
 > **Important**: When you first deploy, the `CORS_ALLOWED_ORIGINS` won't be known yet. You can set a placeholder like `http://localhost:5173` and update it after the frontend is live.
 
 ### 2.4 Auto-Created Superuser
 
 The Start Command runs `ensure_superuser` after every deploy. It reads the `DJANGO_SUPERUSER_*` env vars (set in 2.3) — creates the admin on first deploy and skips silently on subsequent ones (built-in user-exists check).
+
+### 2.5 Error Monitoring (Sentry)
+
+1. Create a **Django** project at <https://sentry.io> (name it `ai-pos-backend`) and copy its **DSN** (Settings → Projects → Client Keys (DSN)).
+2. Paste it into the `SENTRY_DSN` env var from 2.3, set `SENTRY_ENVIRONMENT=production` and `SENTRY_RELEASE=$RENDER_GIT_COMMIT` (already listed there).
+3. The SDK is initialized in `config/settings/prod.py` **only when `SENTRY_DSN` is non-empty** — local dev and tests never send events.
+4. Verify after the first deploy: temporarily add a route to `pos_backend/config/urls.py`
+   ```python
+   path("api/v1/_sentry-test/", lambda request: 1 / 0),
+   ```
+   hit `https://<your-backend>/api/v1/_sentry-test/`, confirm an issue appears in Sentry (with `environment: production` and the commit SHA), then remove the route and redeploy.
+
+Full setup, DRF exception-handler wiring, PII rules and troubleshooting: **`sentry.md`**.
 
 ---
 
@@ -125,12 +142,15 @@ Run through this checklist:
 - [ ] Create an admin account via `/admin/` or `createsuperuser`, log in as admin, see dashboard
 - [ ] Create a category → add a product → complete a sale → view the invoice
 - [ ] Check browser console — no CORS errors
+- [ ] Sentry test event received (§2.5), and an ordinary 409/401 does **not** create an issue
 
 ---
 
 ## 6. Cold Start Note
 
 Render's free-tier services **sleep after ~15 minutes of inactivity**. The first request after idle takes **10–50 seconds** (cold start). The frontend should reflect this in the UI rather than showing a generic error. If you see a timeout on first load, wait ~30s and refresh.
+
+Cold starts show up in Sentry only as one unusually slow transaction — they are not errors. Do not raise the alert threshold for them.
 
 ---
 
