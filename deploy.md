@@ -81,6 +81,8 @@ The Start Command runs `ensure_superuser` after every deploy. It reads the `DJAN
    ```
    hit `https://<your-backend>/api/v1/_sentry-test/`, confirm an issue appears in Sentry (with `environment: production` and the commit SHA), then remove the route and redeploy.
 
+> **Two tabs**: **Issues** receives the 500 event; **Logs** receives every `logger.*` line (root logger is `INFO`). A 4xx response or a successful request produces **nothing** in either tab — that is intentional, not a broken setup. If the UI looks empty, check the environment filter (must be `production` or `All`) first.
+
 Full setup, DRF exception-handler wiring, PII rules and troubleshooting: **`sentry.md`**.
 
 ---

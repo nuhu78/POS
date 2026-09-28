@@ -67,20 +67,22 @@ def _before_send(event, hint):
     return event
 
 
-def init_sentry(dsn, environment, release=None, traces_sample_rate=0.1):
+def init_sentry(dsn, environment, release=None, traces_sample_rate=0.1, logs_level=logging.INFO):
     """Initialize Sentry. Only called from config.settings.prod when SENTRY_DSN is set."""
     sentry_sdk.init(
         dsn=dsn,
         integrations=[
             DjangoIntegration(),
             LoggingIntegration(
-                level=logging.INFO,         # INFO+ become breadcrumbs
-                event_level=logging.ERROR,  # ERROR+ become Sentry events
+                level=logging.INFO,             # INFO+ become breadcrumbs
+                event_level=logging.ERROR,      # ERROR+ become Issues
+                sentry_logs_level=logs_level,   # INFO+ also stream to the Logs tab
             ),
         ],
         environment=environment,
         release=release or None,
         traces_sample_rate=traces_sample_rate,
+        enable_logs=True,          # Logs product is OFF by default in SDK 2.x
         send_default_pii=False,   # never attach request bodies / user IPs
         max_breadcrumbs=50,
         before_send=_before_send,
@@ -108,6 +110,26 @@ Why here and not in `base.py`:
 
 - **Dev stays clean** — local runs (`config.settings.dev`) never send events, so tests and `runserver` don't pollute the project.
 - **Init runs at settings import**, which happens before gunicorn serves traffic *and* before `manage.py migrate` in the Render start command — so a failing migration on deploy is also reported.
+
+### 3.1 Two tabs: Issues vs Logs (why the UI can look empty)
+
+Sentry splits ingestion into separate products — they do **not** all populate from one source:
+
+| Sentry tab | Fed by | This project's source |
+|---|---|---|
+| **Issues** | uncaught exceptions + `logger.error` / `logger.exception` (`event_level=ERROR`) | DRF 500s via `_capture_server_error`, the `logger.exception` fallback, `DatabaseError` |
+| **Logs** | every log record ≥ `sentry_logs_level` (INFO) — needs `enable_logs=True` | `logger.info/warning/error` anywhere in `config/` and `apps/` |
+| **Explore / Performance** | transactions, sampled at `traces_sample_rate` | 10 % of requests |
+| **Releases / Environments** | `SENTRY_RELEASE`, `SENTRY_ENVIRONMENT` | Render commit SHA + `production` |
+
+Four reasons an empty screen is usually a false alarm:
+
+1. **Wrong tab** — Logs only shows `logger.*` output; Issues only shows errors. Neither fills up if nothing was logged/failed yet.
+2. **`enable_logs` defaults to `false`** in sentry-sdk 2.x — without it in `init()`, the Logs tab stays empty forever (now set in `config/sentry.py`).
+3. **Python silently drops INFO** — the root logger defaults to `WARNING`, so `logger.info(...)` never reaches *any* handler, not even the console. `config/settings/base.py` now defines `LOGGING` with `root: level=INFO` (which also prints app logs into Render's Logs tab).
+4. **No 5xx has happened yet** — 4xx responses are intentionally silent (§5). Test with the `_sentry-test` route from §9, not with a bad request payload.
+
+Also check the **environment filter** at the top of the page: with `SENTRY_ENVIRONMENT=production`, events are tagged `production` — selecting a non-existent environment hides everything.
 
 ---
 
@@ -341,8 +363,11 @@ The free plan has a monthly event cap (check **Settings → Subscription** for y
 
 | Symptom | Cause / fix |
 |---|---|
+| **Logs tab empty** | `enable_logs` not passed to `init()` (default is `false` in SDK 2.x) — see §3.1 |
+| **`logger.info` missing everywhere** | Root logger still at `WARNING` — `LOGGING["root"]["level"]` in `config/settings/base.py` must be `INFO` |
+| **Nothing at all, both tabs** | `SENTRY_DSN` missing/empty on Render, or the UI **environment filter** excludes `production` |
 | No events at all | `SENTRY_DSN` missing/empty on Render; confirm `config.settings.prod` is the settings module (`config/wsgi.py` already sets it) |
-| No events for an API error | DRF swallowed it — see §5; add `capture_exception` for `status >= 500` |
+| No events for an API error | DRF swallowed it — see §5; add `capture_exception` for `status >= 500`. 4xx are silent by design — trigger a real 500 (§9) |
 | Duplicate events for one error | Both `capture_exception` **and** `logger.exception` on the same path — remove one |
 | Events missing tracebacks | You used `logger.error(..., exc)` — switch to `logger.exception(...)` |
 | Dev/test events appear | Something imported `init_sentry()` from `base.py` — keep it in `prod.py` only |
@@ -365,6 +390,7 @@ The free plan has a monthly event cap (check **Settings → Subscription** for y
 | `pos_backend/requirements.txt` | add `sentry-sdk[django]>=2.0` |
 | `pos_backend/config/sentry.py` | **new** — `init_sentry()` + `before_send` filter |
 | `pos_backend/config/settings/prod.py` | call `init_sentry()` when `SENTRY_DSN` is set |
+| `pos_backend/config/settings/base.py` | `LOGGING` with `root: level=INFO` — without it `logger.info` never reaches Sentry |
 | `pos_backend/config/exceptions.py` | `_set_sentry_user()` / `_capture_server_error()`; `logger.exception` for DB errors; `capture_exception` for DRF 5xx |
 | `.env.example` | `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `SENTRY_TRACES_SAMPLE_RATE` |
 | `deploy.md` | env-var table (§2.3) + new §2.5 "Error Monitoring (Sentry)" + verify checklist |
