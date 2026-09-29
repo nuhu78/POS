@@ -19,7 +19,7 @@ CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.shee
 
 
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all().order_by("name")
+    queryset = Product.objects.select_related("category").order_by("name")
     serializer_class = ProductSerializer
     permission_classes = [AdminOrReadOnly]
     search_fields = ["name", "sku"]
