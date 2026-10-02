@@ -19,10 +19,7 @@ CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.shee
 
 
 class ProductViewSet(ModelViewSet):
-    queryset =  Product.objects.select_related("category").filter(
-    stock__lte=F("low_stock_threshold"),
-    status="active",
-).order_by("stock")
+    queryset = Product.objects.select_related("category").order_by("name")
     serializer_class = ProductSerializer
     permission_classes = [AdminOrReadOnly]
     search_fields = ["name", "sku"]
