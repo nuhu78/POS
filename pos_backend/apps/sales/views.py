@@ -8,7 +8,12 @@ from apps.shop_settings.models import ShopSettings
 
 
 class SaleViewSet(ModelViewSet):
-    queryset = Sale.objects.all().order_by("-date")
+    queryset = (
+    Sale.objects
+    .select_related("customer", "user", "payment")
+    .prefetch_related("items__product")
+    .order_by("-date")
+)
     serializer_class = SaleSerializer
     permission_classes = [IsAuthenticated]
     filterset_fields = ["customer"]

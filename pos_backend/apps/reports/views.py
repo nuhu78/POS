@@ -8,6 +8,7 @@ from rest_framework.pagination import PageNumberPagination
 from apps.sales.models import Sale, SaleItem
 from apps.products.models import Product
 from apps.customers.models import Customer
+from django.db.models.functions import TruncDate
 
 
 class ReportPagination(PageNumberPagination):

@@ -44,21 +44,40 @@ export default function POSScreen() {
   useEffect(() => { loadCustomers(); }, [loadCustomers]);
 
   const addToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.product === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.product === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
+    const stock = Number(product.stock) || 0;
+    if (stock <= 0) {
+      showToast(`"${product.name}" is out of stock.`, "error");
+      return;
+    }
+    const existing = cart.find((i) => i.product === product.id);
+    if (existing) {
+      if (existing.quantity >= stock) {
+        showToast(`Only ${stock} unit(s) of "${product.name}" in stock.`, "error");
+        return;
       }
-      return [...prev, { product: product.id, name: product.name, price: product.selling_price, quantity: 1 }];
-    });
+      setCart((prev) =>
+        prev.map((i) =>
+          i.product === product.id ? { ...i, quantity: i.quantity + 1 } : i
+        )
+      );
+      return;
+    }
+    setCart((prev) => [
+      ...prev,
+      { product: product.id, name: product.name, price: product.selling_price, stock, quantity: 1 },
+    ]);
   };
 
   const updateQty = (productId, qty) => {
     if (qty <= 0) {
       setCart((prev) => prev.filter((i) => i.product !== productId));
       return;
+    }
+    const line = cart.find((i) => i.product === productId);
+    const stock = line?.stock ?? Infinity;
+    if (qty > stock) {
+      showToast(`Only ${stock} unit(s) of "${line.name}" in stock.`, "error");
+      qty = stock;
     }
     setCart((prev) => prev.map((i) => (i.product === productId ? { ...i, quantity: qty } : i)));
   };
@@ -127,11 +146,17 @@ export default function POSScreen() {
             <div
               key={p.id}
               onClick={() => addToCart(p)}
-              className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-amber-500 hover:shadow-sm transition-all bg-white"
+              className={`border rounded-lg p-3 transition-all bg-white ${
+                Number(p.stock) > 0
+                  ? "border-gray-200 cursor-pointer hover:border-amber-500 hover:shadow-sm"
+                  : "border-gray-200 opacity-50 cursor-not-allowed"
+              }`}
             >
               <p className="font-medium text-sm">{p.name}</p>
               <p className="text-amber-600 font-semibold text-sm">{p.selling_price} BDT</p>
-              <p className="text-xs text-gray-500">SKU: {p.sku} | Stock: {p.stock}</p>
+              <p className={`text-xs ${Number(p.stock) > 0 ? "text-gray-500" : "text-red-500 font-semibold"}`}>
+                SKU: {p.sku} | {Number(p.stock) > 0 ? `Stock: ${p.stock}` : "Out of stock"}
+              </p>
             </div>
           ))}
         </div>
@@ -154,6 +179,7 @@ export default function POSScreen() {
                   type="number"
                   value={item.quantity}
                   min="1"
+                  max={item.stock}
                   onChange={(e) => updateQty(item.product, parseInt(e.target.value) || 0)}
                   className="border border-gray-300 rounded w-16 px-2 py-1 text-sm"
                 />
